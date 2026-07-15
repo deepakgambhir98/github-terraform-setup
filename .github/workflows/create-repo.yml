@@ -7,6 +7,21 @@ on:
         description: "Name of the repository to create"
         required: true
         type: string
+      repo_description:
+        description: "Repository description"
+        required: false
+        default: "Repository provisioned via Terraform."
+        type: string
+      visibility:
+        description: "Repository visibility"
+        required: false
+        default: "private"
+        type: string
+      apply:
+        description: "Run terraform apply?"
+        required: false
+        default: "true"
+        type: string
 
 # Prevent two runs from racing on the same state file.
 concurrency:
@@ -20,6 +35,8 @@ env:
   TF_IN_AUTOMATION: "true"
   TF_INPUT: "false"
   TF_VAR_repo_name: ${{ github.event.inputs.repo }}
+  TF_VAR_description: ${{ github.event.inputs.repo_description }}
+  TF_VAR_visibility: ${{ github.event.inputs.visibility }}
   TF_VAR_github_owner: ${{ github.repository_owner }}
 
 jobs:
@@ -30,16 +47,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Export GitHub token
-        run: echo "GITHUB_TOKEN=${{ secrets.GH_ADMIN_TOKEN }}" >> $GITHUB_ENV
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9.8"
 
+      - name: Cache Terraform providers
+        uses: actions/cache@v4
+        with:
+          path: |
+            .terraform
+            .terraform.lock.hcl
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
+      - name: Export GitHub token
+        run: echo "GITHUB_TOKEN=${{ secrets.GH_ADMIN_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Terraform Format
+        run: terraform fmt -check -recursive
+
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -input=false
 
       - name: Terraform Validate
         run: terraform validate
@@ -47,7 +77,11 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -out=tfplan
 
+      - name: Show Terraform plan
+        run: terraform show -no-color tfplan
+
       - name: Terraform Apply
+        if: ${{ github.event.inputs.apply == 'true' }}
         run: terraform apply -auto-approve tfplan
 
       - name: Show outputs
