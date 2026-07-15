@@ -1,0 +1,8 @@
+# Copy to terraform.tfvars for local runs, or pass -var="repo_name=..." on the CLI.
+# In CI, only repo_name is supplied (via TF_VAR_repo_name) — everything else uses defaults.
+
+repo_name = "my-new-repo"
+# github_owner = "my-org"
+# visibility   = "private"
+
+
