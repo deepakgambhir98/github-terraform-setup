@@ -14,15 +14,14 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   TF_IN_AUTOMATION: "true"
   TF_INPUT: "false"
   TF_VAR_repo_name: ${{ github.event.inputs.repo }}
-  GITHUB_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
-  GITHUB_OWNER: ${{ secrets.GH_OWNER }}
-  TF_VAR_github_owner: ${{ secrets.GH_OWNER }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  TF_VAR_github_owner: ${{ github.repository_owner }}
 
 jobs:
   terraform:
