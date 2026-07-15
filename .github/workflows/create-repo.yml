@@ -1,0 +1,58 @@
+name: Create GitHub Repository
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: "Name of the repository to create"
+        required: true
+        type: string
+
+# Prevent two runs from racing on the same state file.
+concurrency:
+  group: terraform-github-repo
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+  TF_VAR_repo_name: ${{ github.event.inputs.repo }}
+  GITHUB_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
+  GITHUB_OWNER: ${{ secrets.GH_OWNER }}
+  TF_VAR_github_owner: ${{ secrets.GH_OWNER }}
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform-github-repo
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
+
+      - name: Show outputs
+        run: terraform output
+
+        
