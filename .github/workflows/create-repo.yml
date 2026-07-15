@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: terraform-github-repo
+        working-directory: .
 
     steps:
       - name: Checkout
