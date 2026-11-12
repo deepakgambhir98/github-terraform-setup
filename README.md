@@ -24,9 +24,12 @@ terraform-github-repo/
    - `GH_OWNER` — the org or user that should own new repos.
 3. **State location**: local Terraform runs store state at
   `../terraform-state/terraform.tfstate`, outside this project directory.
-  GitHub Actions runs on temporary machines, so this local state does not
-  persist between workflow runs. To retain state in CI, configure a remote
-  backend such as Terraform Cloud or S3 instead.
+  GitHub Actions uploads the runner's state as a `terraform-state` artifact
+  with 7-day retention. Download it from the workflow run's Artifacts section.
+  It is a snapshot for download only and is not restored by later runs. Treat
+  it as sensitive; anyone with access to that workflow run can download it.
+  For persistent CI state, configure a remote backend such as Terraform Cloud
+  or S3 instead.
 
 ## Usage — GitHub Actions
 

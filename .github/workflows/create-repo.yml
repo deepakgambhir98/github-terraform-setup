@@ -87,4 +87,13 @@ jobs:
       - name: Show outputs
         run: terraform output
 
+      - name: Upload Terraform state
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-state
+          path: ../terraform-state/terraform.tfstate
+          if-no-files-found: ignore
+          retention-days: 2
+
         
