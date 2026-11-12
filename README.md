@@ -22,11 +22,11 @@ terraform-github-repo/
 2. **Add repo secrets** (Settings → Secrets and variables → Actions):
    - `GH_ADMIN_TOKEN` — the token above.
    - `GH_OWNER` — the org or user that should own new repos.
-3. **Set up remote state** (recommended once you're running this from CI more
-   than a few times). Uncomment the `backend` block in `versions.tf` and point
-   it at an S3 bucket + DynamoDB lock table, Terraform Cloud workspace, or
-   equivalent. Without this, each Action run starts from a blank state file
-   and won't know about repos created in previous runs.
+3. **State location**: local Terraform runs store state at
+  `../terraform-state/terraform.tfstate`, outside this project directory.
+  GitHub Actions runs on temporary machines, so this local state does not
+  persist between workflow runs. To retain state in CI, configure a remote
+  backend such as Terraform Cloud or S3 instead.
 
 ## Usage — GitHub Actions
 
@@ -43,6 +43,9 @@ terraform init
 terraform apply -var="repo_name=my-new-repo"
 ```
 
+If you already initialized Terraform with a different backend, run
+`terraform init -migrate-state` to move its state to the configured path.
+
 ## Design notes (why this is "robust and scalable")
 
 - **Single required input**: everything else (visibility, branch rules,
@@ -58,9 +61,9 @@ terraform apply -var="repo_name=my-new-repo"
 - **Extensible**: branch protection and collaborator management are already
   wired up (`enable_branch_protection`, `collaborators` variables) — turn
   them on per-repo without editing `main.tf`.
-- **Remote state ready**: swap in any Terraform backend for team-safe,
-  multi-run state instead of local `.tfstate` (which doesn't persist between
-  ephemeral Actions runners anyway).
+- **Local state outside the project**: the local backend stores state in the
+  sibling `terraform-state` directory. Use a remote backend for persistent CI
+  state across GitHub Actions runs.
 
 ## Extending
 
