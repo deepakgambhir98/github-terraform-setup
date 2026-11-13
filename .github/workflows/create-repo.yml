@@ -52,6 +52,19 @@ jobs:
         with:
           terraform_version: "1.9.8"
 
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v6
+        with:
+          cache: true
+
+      - name: Initialize TFLint
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run TFLint
+        run: tflint -f compact
+
       - name: Cache Terraform providers
         uses: actions/cache@v4
         with:
